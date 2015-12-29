@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xmlns:context="http://www.springframework.org/schema/context"
+     xmlns:mybatis="http://mybatis.org/schema/mybatis-spring"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<bean id="chargeCheckService" class="com.asiainfo.ti.service.ChargeCheckService">
+		<property name="notificationService" ref="notificationService"/>
+		<property name="tradeMessageDao" ref="tradeMessageDao"/>
+		<property name="taobaoClient" ref="taobaoClient"/>
+		<property name="propertyManager" ref="hotPropertyManager"/>	
+		<property name="executor" ref="taskExecutor"/>
+	</bean>
+	
+	<bean id="checkServiceInvoker" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+	    <property name="targetObject" ref="chargeCheckService"/>
+	    <property name="targetMethod" value="doTask"/>
+	    <property name="concurrent" value="false"/>
+	</bean>
+	
+	<bean id="checkCronTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+	    <property name="jobDetail" ref="checkServiceInvoker"/>
+	    <property name="cronExpression" value="0/10 * * * * ?"/>
+	</bean> 
+	
+        
+    <bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+	    <property name="triggers">
+	        <list>
+	            <ref bean="checkCronTrigger"/>
+	        </list>
+	    </property>
+	</bean>
+        
+</beans>

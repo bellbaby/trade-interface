@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.asiainfo.ti.mybatis.mapper.TradeCheckNotificationMapper">
+	<insert id="add" parameterType="com.asiainfo.ti.dto.TradeCheckNotification">
+		insert into trade_check_notification
+		<trim  prefix="(" suffix=")" suffixOverrides=",">
+			id,
+			uuid,
+			responseMessageKey,
+			pretime,
+			createtime,
+			<if test="checkcount !=null">
+			checkcount,
+			</if>
+			<if test="lastchecktime !=null">
+			lastchecktime
+			</if>
+		</trim>
+		values
+		<trim  prefix="(" suffix=")" suffixOverrides=",">
+			#{id},
+			#{uuid},
+			#{responseMessageKey},
+			#{pretime},
+			#{createtime},
+			<if test="checkcount !=null">
+			#{checkcount},
+			</if>
+			<if test="lastchecktime !=null">
+			#{lastchecktime}
+			</if>
+		</trim>	
+	</insert>
+	
+	<delete id="delete" parameterType="com.asiainfo.ti.dto.TradeCheckNotification">
+		delete from trade_check_notification where id=#{id}
+	</delete>
+	
+	<update id="update" parameterType="com.asiainfo.ti.dto.TradeCheckNotification">
+		update trade_check_notification set pretime = #{pretime},checkcount=#{checkcount},lastchecktime=#{lastchecktime} where id = #{id}
+	</update>
+	
+	<select id="queryReadyNotification" parameterType="date" resultType="com.asiainfo.ti.dto.TradeCheckNotification" >
+		select * from trade_check_notification  where pretime &lt; #{date} limit 1000
+	</select>
+	
+	<insert id="addBak" parameterType="com.asiainfo.ti.dto.TradeCheckNotification">
+		insert into trade_check_notification_bak
+		<trim  prefix="(" suffix=")" suffixOverrides=",">
+			id,
+			uuid,
+			responseMessageKey,
+			pretime,
+			createtime,
+			<if test="checkcount !=null">
+			checkcount,
+			</if>
+			<if test="lastchecktime !=null">
+			lastchecktime,
+			</if>
+			<if test="state !=null">
+			state,
+			</if>
+			<if test="message !=null">
+			message
+			</if>
+		</trim>
+		values
+		<trim  prefix="(" suffix=")" suffixOverrides=",">
+			#{id},
+			#{uuid},
+			#{responseMessageKey},
+			#{pretime},
+			#{createtime},
+			<if test="checkcount !=null">
+			#{checkcount},
+			</if>
+			<if test="lastchecktime !=null">
+			#{lastchecktime},
+			</if>
+			<if test="state !=null">
+			#{state},
+			</if>
+			<if test="message !=null">
+			#{message}
+			</if>
+		</trim>	
+	</insert>
+	
+</mapper>

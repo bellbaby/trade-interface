@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xmlns:mybatis="http://mybatis.org/schema/mybatis-spring"
+    xmlns:tx="http://www.springframework.org/schema/tx"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://mybatis.org/schema/mybatis-spring 
+        http://mybatis.org/schema/mybatis-spring.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop.xsd
+        http://www.springframework.org/schema/tx
+       http://www.springframework.org/schema/tx/spring-tx-3.0.xsd ">
+       
+    <context:property-placeholder location="classpath*:ti_config.properties"/>
+    
+	<bean id="hotPropertyManager" class="com.asiainfo.ti.HotPropertyManager">
+		<property name="channelId" value="0000045_FLKJ_C55FC22A2C0EC08A"/>
+		<property name="accessToken" value="61023159d5d13ed934910a710e9f1dec9dc340967a8fa672619763580"/>
+	</bean>
+	<bean id="taobaoClient" class="com.taobao.api.DefaultTaobaoClient">
+		<constructor-arg index="0" value="${taobao.url}"/>
+		<constructor-arg index="1" value="${taobao.appid}"/>
+		<constructor-arg index="2" value="${taobao.securet}"/>
+	</bean>
+	
+	<bean id="tradeMessageDao" class="com.asiainfo.ti.redis.dao.TradeMessageDao">
+		<property name="jedisPool" ref="jedisPool"/>	
+	</bean>
+	
+	<bean id="requestListener" class="com.asiainfo.ti.service.ChargeRequestListener">
+		<property name="notificationService" ref="notificationService"/>
+		<property name="tradeMessageDao" ref="tradeMessageDao"/>
+		<property name="taobaoClient" ref="taobaoClient"/>
+		<property name="propertyManager" ref="hotPropertyManager"/>
+	</bean>
+	
+	<bean id="reqestQueueContainer" class="com.asiainfo.ti.container.RedisListMessageContainer">
+		<property name="concurrentprocessors" value="5"/>
+		<property name="maxConcurrentprocessors" value="50"/>
+		<property name="startConsumerMinInterval" value="1000"/>
+		<property name="stopConsumerMinInterval" value="1000"/>
+		<property name="consumerAddInterval" value="10"/>
+		<property name="consumerDelInterval" value="10"/>
+		<property name="pool" ref="jedisPool"/>
+		<property name="queue" value="flow_request_queue"/>
+		<property name="errorQueue" value="flow_request_error_queue"/>
+		<property name="listener" ref="requestListener"/>
+	</bean>
+	
+	<bean id="notificationService" class="com.asiainfo.ti.service.TradeCheckNotificationService">
+		<property name="notificationMapper" ref="tradeCheckNotificationMapper"/>
+		<property name="checkIntervel" value="${ti.checkIntervel}"/> <!-- millsecond -->
+		<property name="timeout" value="${ti.tradeTimeout}"/> <!-- millsecond -->
+	</bean>
+	
+	<bean id="taskExecutor" class="com.asiainfo.ti.executor.PooledThreadExecutor">
+		<constructor-arg index="0" value="${executor.corePoolSize}"/>
+		<constructor-arg index="1" value="${executor.maximumPoolSize}"/>
+		<constructor-arg index="2" value="${executor.keepAliveTime}"/><!-- second -->
+	</bean>
+	
+	<import resource="spring-redis.xml"/>
+	<import resource="spring-database.xml"/>
+	<import resource="spring-autojob.xml"/>
+</beans>
